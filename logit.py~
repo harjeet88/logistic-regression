@@ -1,0 +1,76 @@
+import numpy as np
+import pandas as pd
+import pylab as pl
+import plotData as plot
+import costLogit as cl
+import scipy.optimize as opt
+import decisionBoundry as db
+import sigmoid as sg
+
+def compute_cost(theta,X,y): #computes cost given predicted and actual values
+	m = X.shape[0] #number of training examples
+	theta = np.reshape(theta,(len(theta),1))
+ 
+	#y = reshape(y,(len(y),1))
+	J = (1./m) * (-np.transpose(y).dot(np.log(sg.sigmoid(X.dot(theta)))) - np.transpose(1-y).dot(np.log(1-sg.sigmoid(X.dot(theta)))))
+	grad = np.transpose((1./m)*np.transpose(sg.sigmoid(X.dot(theta)) - y).dot(X))
+	#optimize.fmin expects a single value, so cannot return grad
+	return J.mean()#,grad
+
+
+def compute_grad(theta, X, y):
+	h = sg.sigmoid(np.dot(X,theta));
+	error = h - y # difference between label and prediction
+	#print error.shape
+	#print X.shape
+	grad = np.zeros((theta.shape))
+	grad = np.dot(error, X) / y.size # gradient vector
+	
+	grad_1 = [grad[:,0].mean() ; grad[:,1].mean(); grad[:,2].mean()]
+	
+	#print grad[:,1].mean()
+	
+	#print grad.T.shape
+	#print np.ones((y.size,1)).shape	
+	
+	#grad = np.dot(grad.T,np.ones((y.size,1)))/y.size
+	
+	return grad
+
+data = np.loadtxt('./ex2data1.txt',delimiter = ',')
+
+X = data[:,0:2]
+Y = data[:,2]
+
+#plot.plot(X,Y)
+
+m, n = X.shape
+
+print(str(m) +' X ' + str(n) +' matrix')
+
+ones_array = np.ones((m,1))
+
+ones_array = 1.0 * ones_array
+
+
+X = np.concatenate((ones_array,X), axis =1)
+
+#print(X)
+
+initial_theta = np.zeros(shape=(n+1,1))
+#initial_theta = 0.1 * initial_theta
+
+cost = cl.costFunction(initial_theta, X, Y)
+
+print('initial cost : '+str(cost))
+
+print('gradient at inial theta : '+str(compute_grad(initial_theta, X, Y)))
+
+
+theta_1 = opt.fmin_bfgs(cl.costFunction, x0=initial_theta, fprime=compute_grad, args=(X, Y),maxiter=1000)
+
+print('New Theta :')
+print theta_1
+
+#db.plotDB(X,Y,initial_theta)
+

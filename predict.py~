@@ -1,0 +1,5 @@
+import sigmoid as sg
+def predict(theta, X) :
+	sg.sigmoid(np.dot(X,theta))
+	
+	
